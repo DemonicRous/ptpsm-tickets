@@ -14,12 +14,10 @@ desktop.ini
 .classpath
 
 # Composer
-vendor/
 composer.lock
 composer.phar
 
 # Node.js
-node_modules/
 package-lock.json
 yarn.lock
 
