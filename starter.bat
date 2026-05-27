@@ -1,96 +1,105 @@
 @echo off
-title Установка системы заявок ПТПСМ
+chcp 65001 >nul
+title Setup PTPSM Tickets System
 echo ========================================
-echo   Установка системы заявок ПТПСМ
+echo   PTPSM Tickets System Setup
 echo ========================================
 echo.
 
 REM Проверка наличия .env
 if not exist ".env" (
-    echo Создание .env из .env.example...
+    echo Creating .env from .env.example...
     copy .env.example .env
-    echo Отредактируйте .env и запустите скрипт снова.
+    echo Please edit .env and run the script again.
     echo.
     pause
     exit /b
 )
 
-REM Загрузка параметров из .env (упрощённый разбор)
-for /f "usebackq tokens=*" %%i in ("%cd%\.env") do set %%i
+REM Загрузка переменных из .env с помощью PowerShell (более надёжно)
+echo Loading environment variables...
+for /f "usebackq tokens=*" %%i in (`powershell -Command "Get-Content .env | Where-Object { $_ -match '^[^#]' -and $_ -match '=' } | ForEach-Object { $_.Trim() }"`) do set %%i
 
-REM Создание базы данных, если не существует
-echo Проверка базы данных %DB_NAME%...
-mysql -u %DB_USER% -p%DB_PASS% -e "CREATE DATABASE IF NOT EXISTS %DB_NAME% CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+REM Создание базы данных через PHP (не зависит от mysql в PATH)
+echo Creating database %DB_NAME% if not exists...
+php -r "
+try {
+    \$pdo = new PDO('mysql:host=%DB_HOST%;port=%DB_PORT%;charset=%DB_CHARSET%', '%DB_USER%', '%DB_PASS%');
+    \$pdo->exec('CREATE DATABASE IF NOT EXISTS `%DB_NAME%` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
+    echo \"Database ready.\n\";
+} catch (PDOException \$e) {
+    echo \"ERROR: \" . \$e->getMessage() . \"\n\";
+    exit(1);
+}
+"
 if errorlevel 1 (
-    echo Ошибка подключения к MySQL. Проверьте параметры в .env
+    echo Failed to create database. Check your .env settings.
     pause
     exit /b
 )
-echo База данных готова.
 
 REM Установка Composer зависимостей
 if not exist "vendor\" (
-    echo Установка Composer зависимостей...
+    echo Installing Composer dependencies...
     composer install --no-interaction
 ) else (
-    echo Composer зависимости уже установлены.
+    echo Composer dependencies already installed.
 )
 
 REM Автозагрузка
 composer dump-autoload
 
 REM Миграция
-echo Выполнение миграции...
+echo Running migrations...
 php commands\MigrateCommand.php
 if errorlevel 1 (
-    echo Ошибка миграции
+    echo Migration failed
     pause
     exit /b
 )
 
 REM Сиды
-echo Заполнение начальными данными...
+echo Seeding data...
 php commands\SeedCommand.php
 
-REM Папки для вложений и аватаров
+REM Создание папок
 if not exist "storage\uploads" mkdir storage\uploads
 if not exist "storage\avatars" mkdir storage\avatars
 
-REM Удаление старых ссылок
+REM Удаление старой ссылки
 if exist "public\storage" (
-    echo Удаление старой ссылки public\storage...
+    echo Removing old junction public\storage...
     rmdir public\storage
 )
 
-REM Создание символической ссылки (junction)
-echo Создание символической ссылки public\storage на storage...
-New-Item -ItemType Junction -Path "public\storage" -Target "storage"
+REM Создание NTFS junction
+echo Creating junction public\storage -> storage...
+mklink /J public\storage storage >nul 2>&1
 if errorlevel 1 (
-    echo Не удалось создать ссылку. Возможно, нужны права администратора.
-    echo Выполните вручную: mklink /J public\storage storage
+    echo Failed to create junction. Please run as Administrator or manually:
+    echo mklink /J public\storage storage
 ) else (
-    echo Ссылка public\storage создана.
+    echo Junction created.
 )
 
-REM Установка Node.js зависимостей и сборка CSS
+REM Сборка CSS (если есть package.json)
 if exist "package.json" (
-    echo Установка npm зависимостей...
+    echo Installing npm dependencies...
     call npm install --no-audit --no-fund
-    echo Сборка CSS...
+    echo Building CSS...
     call npm run build:css
 ) else (
-    echo package.json не найден, пропуск сборки CSS.
+    echo package.json not found, skipping CSS build.
 )
 
 echo.
 echo ========================================
-echo   Установка завершена!
+echo   Setup completed!
 echo ========================================
 echo.
-echo Для входа в систему:
-echo   Администратор: логин copp, пароль admin123
-echo   Пользователь:   логин ivan, пароль password123
-echo   Другие пользователи: логины из сидов, пароль password123
+echo Login credentials:
+echo   Admin:    login copp, password admin123
+echo   Users:    logins from seeders, password password123
 echo.
-echo Запустите веб-сервер и откройте http://localhost
+echo Start your web server and open http://localhost
 pause
