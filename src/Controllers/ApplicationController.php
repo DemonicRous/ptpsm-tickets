@@ -22,7 +22,9 @@ class ApplicationController {
         View::render('application/create', [
             'csrf_token' => CSRF::generateToken(),
             'categories' => $categories,
-            'priorities' => $priorities
+            'priorities' => $priorities,
+            'old' => [],
+            'errors' => []
         ]);
     }
     

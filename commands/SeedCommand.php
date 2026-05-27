@@ -50,3 +50,57 @@ if ($stmt->fetchColumn() == 0) {
     $stmt->execute([':user_id' => $userId, ':number' => $appNumber]);
     echo "✅ Тестовая заявка создана\n";
 }
+
+// === Добавляем отделы, если их нет ===
+$stmt = $db->query("SELECT COUNT(*) FROM departments");
+if ($stmt->fetchColumn() == 0) {
+    $departments = [
+        ['IT-отдел', 'Техническая поддержка'],
+        ['Бухгалтерия', 'Финансовый отдел'],
+        ['Администрация', 'Руководство'],
+        ['Учебная часть', 'Организация учебного процесса']
+    ];
+    $sql = "INSERT INTO departments (name, description) VALUES (?, ?)";
+    $stmt = $db->prepare($sql);
+    foreach ($departments as $dept) {
+        $stmt->execute([$dept[0], $dept[1]]);
+    }
+    echo "✅ Отделы добавлены\n";
+}
+
+// === Категории ===
+$stmt = $db->query("SELECT COUNT(*) FROM categories");
+if ($stmt->fetchColumn() == 0) {
+    $categories = [
+        ['Оборудование', null],
+        ['Компьютеры', 1],
+        ['Принтеры', 1],
+        ['Программное обеспечение', null],
+        ['ОС', 4],
+        ['Сеть и интернет', null],
+        ['Доступы и права', null],
+    ];
+    $sql = "INSERT INTO categories (name, parent_id) VALUES (?, ?)";
+    $stmt = $db->prepare($sql);
+    foreach ($categories as $cat) {
+        $stmt->execute([$cat[0], $cat[1]]);
+    }
+    echo "✅ Категории добавлены\n";
+}
+
+// === Приоритеты ===
+$stmt = $db->query("SELECT COUNT(*) FROM priorities");
+if ($stmt->fetchColumn() == 0) {
+    $priorities = [
+        ['Низкий', 'green', 1],
+        ['Средний', 'orange', 2],
+        ['Высокий', 'red', 3],
+        ['Критический', 'purple', 4]
+    ];
+    $sql = "INSERT INTO priorities (name, color, sort_order) VALUES (?, ?, ?)";
+    $stmt = $db->prepare($sql);
+    foreach ($priorities as $pri) {
+        $stmt->execute([$pri[0], $pri[1], $pri[2]]);
+    }
+    echo "✅ Приоритеты добавлены\n";
+}

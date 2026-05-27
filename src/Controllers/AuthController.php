@@ -52,11 +52,12 @@ class AuthController {
             header('Location: /profile');
             exit;
         }
-        // Передаём списки отделов, но для регистрации не обязательно
         $departments = (new \Models\Department())->getAll();
         View::render('auth/register', [
             'csrf_token' => CSRF::generateToken(),
-            'departments' => $departments
+            'departments' => $departments,
+            'old' => [],
+            'errors' => []
         ]);
     }
     
@@ -116,4 +117,6 @@ class AuthController {
         header('Location: /');
         exit;
     }
+
+    
 }

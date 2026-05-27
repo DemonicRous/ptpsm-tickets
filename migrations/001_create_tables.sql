@@ -1,5 +1,5 @@
 -- =====================================================
--- 1. Таблица отделов
+-- 1. Отделы
 -- =====================================================
 CREATE TABLE IF NOT EXISTS `departments` (
     `department_id` INT NOT NULL AUTO_INCREMENT,
@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS `departments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
--- 2. Таблица пользователей (расширенная)
+-- 2. Пользователи (расширенные)
 -- =====================================================
 CREATE TABLE IF NOT EXISTS `user` (
     `user_id` INT NOT NULL AUTO_INCREMENT,
@@ -22,15 +22,15 @@ CREATE TABLE IF NOT EXISTS `user` (
     `password` VARCHAR(255) NOT NULL,
     `role` ENUM('Пользователь', 'Администратор') NOT NULL DEFAULT 'Пользователь',
     `department_id` INT NULL,
-    `position` VARCHAR(100) NULL,                -- должность
-    `avatar` VARCHAR(255) NULL,                  -- путь к аватару
+    `position` VARCHAR(100) NULL,
+    `avatar` VARCHAR(255) NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`user_id`),
     FOREIGN KEY (`department_id`) REFERENCES `departments`(`department_id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
--- 3. Таблица категорий заявок (с поддержкой иерархии)
+-- 3. Категории заявок (иерархические)
 -- =====================================================
 CREATE TABLE IF NOT EXISTS `categories` (
     `category_id` INT NOT NULL AUTO_INCREMENT,
@@ -42,31 +42,31 @@ CREATE TABLE IF NOT EXISTS `categories` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
--- 4. Таблица приоритетов
+-- 4. Приоритеты
 -- =====================================================
 CREATE TABLE IF NOT EXISTS `priorities` (
     `priority_id` INT NOT NULL AUTO_INCREMENT,
-    `name` VARCHAR(50) NOT NULL,                 -- Низкий, Средний, Высокий, Критический
-    `color` VARCHAR(20) NOT NULL,                -- для UI: green, yellow, orange, red
+    `name` VARCHAR(50) NOT NULL,
+    `color` VARCHAR(20) NOT NULL,
     `sort_order` INT NOT NULL DEFAULT 0,
     PRIMARY KEY (`priority_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
--- 5. Основная таблица заявок (расширенная)
+-- 5. Заявки
 -- =====================================================
 CREATE TABLE IF NOT EXISTS `application` (
     `application_id` INT NOT NULL AUTO_INCREMENT,
-    `user_id` INT NOT NULL,                      -- кто создал
-    `number` VARCHAR(30) NOT NULL UNIQUE,        -- APP-YYYYMMDD-XXX
+    `user_id` INT NOT NULL,
+    `number` VARCHAR(30) NOT NULL UNIQUE,
     `status` ENUM('Новый', 'В работе', 'Подтвержден', 'Отменен', 'Закрыт') NOT NULL DEFAULT 'Новый',
     `category_id` INT NULL,
-    `priority_id` INT NOT NULL DEFAULT 2,        -- по умолчанию "Средний"
-    `assigned_to` INT NULL,                      -- ответственный (из user)
-    `name_org` TEXT NOT NULL,                    -- кабинет/место
-    `message` TEXT NOT NULL,                     -- описание проблемы
-    `expected_date` DATE NULL,                   -- желаемая дата выполнения
-    `closed_at` TIMESTAMP NULL,                  -- дата закрытия
+    `priority_id` INT NOT NULL DEFAULT 2,
+    `assigned_to` INT NULL,
+    `name_org` TEXT NOT NULL,
+    `message` TEXT NOT NULL,
+    `expected_date` DATE NULL,
+    `closed_at` TIMESTAMP NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`application_id`),
     FOREIGN KEY (`user_id`) REFERENCES `user`(`user_id`) ON DELETE CASCADE,
@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS `application` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
--- 6. Комментарии к заявкам
+-- 6. Комментарии
 -- =====================================================
 CREATE TABLE IF NOT EXISTS `application_comments` (
     `comment_id` INT NOT NULL AUTO_INCREMENT,
@@ -90,13 +90,13 @@ CREATE TABLE IF NOT EXISTS `application_comments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
--- 7. История изменений заявки (аудит)
+-- 7. История изменений
 -- =====================================================
 CREATE TABLE IF NOT EXISTS `application_history` (
     `history_id` INT NOT NULL AUTO_INCREMENT,
     `application_id` INT NOT NULL,
-    `user_id` INT NOT NULL,                      -- кто изменил
-    `field_name` VARCHAR(50) NOT NULL,           -- status, priority, assigned_to
+    `user_id` INT NOT NULL,
+    `field_name` VARCHAR(50) NOT NULL,
     `old_value` VARCHAR(255) NULL,
     `new_value` VARCHAR(255) NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -106,13 +106,13 @@ CREATE TABLE IF NOT EXISTS `application_history` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
--- 8. Вложения (файлы)
+-- 8. Вложения
 -- =====================================================
 CREATE TABLE IF NOT EXISTS `attachments` (
     `attachment_id` INT NOT NULL AUTO_INCREMENT,
     `application_id` INT NOT NULL,
     `user_id` INT NOT NULL,
-    `filename` VARCHAR(255) NOT NULL,            -- имя на сервере
+    `filename` VARCHAR(255) NOT NULL,
     `original_name` VARCHAR(255) NOT NULL,
     `size` INT NOT NULL,
     `mime` VARCHAR(100) NOT NULL,

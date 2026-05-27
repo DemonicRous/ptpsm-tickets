@@ -64,19 +64,36 @@ class AdminController {
         $id = $request->get('id');
         $app = $this->appModel->findById($id);
         if (!$app) {
-            header('HTTP/1.0 404 Not Found');
+            http_response_code(404);
             echo "Заявка не найдена";
             exit;
         }
         $comments = $this->appModel->getComments($id);
         $attachments = $this->appModel->getAttachments($id);
-        $users = (new User())->getAllUsers();
+        $history = $this->appModel->getHistory($id);
+        $users = (new \Models\User())->getAllUsers();
+        
         View::render('admin/view', [
             'application' => $app,
             'comments' => $comments,
             'attachments' => $attachments,
+            'history' => $history,
             'users' => $users,
             'csrf_token' => \Core\CSRF::generateToken()
         ]);
+    }
+
+    public function addComment(Request $request) {
+        $post = $request->post();
+        if (!CSRF::verifyToken($post['csrf_token'] ?? '')) die('CSRF');
+        $appId = $post['application_id'];
+        $comment = trim($post['comment']);
+        if ($comment) {
+            $this->appModel->addComment($appId, $_SESSION['user_id'], $comment);
+        }
+        // Определяем, откуда пришли (админ или обычный пользователь)
+        $referer = $_SERVER['HTTP_REFERER'] ?? '/';
+        header("Location: $referer");
+        exit;
     }
 }

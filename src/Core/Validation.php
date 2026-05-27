@@ -26,7 +26,7 @@ class Validation {
     }
     
     public static function uniqueLogin($login, $excludeId = null) {
-        $db = Database::getInstance()->getConnection();
+        $db = \Core\Database::getInstance()->getConnection();
         $sql = "SELECT COUNT(*) FROM user WHERE login = :login";
         if ($excludeId) {
             $sql .= " AND user_id != :id";

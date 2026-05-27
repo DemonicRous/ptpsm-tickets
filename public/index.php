@@ -29,7 +29,11 @@ $router->get('/application/create', 'ApplicationController@create', ['auth']);
 $router->post('/application/store', 'ApplicationController@store', ['auth']);
 
 $router->get('/admin', 'AdminController@index', ['auth', 'admin']);
+$router->get('/admin/view', 'AdminController@viewApplication', ['auth', 'admin']);
+$router->post('/admin/assign', 'AdminController@assign', ['auth', 'admin']);
+$router->post('/application/comment', 'ApplicationController@addComment', ['auth']);
 $router->post('/admin/update-status', 'AdminController@updateStatus', ['auth', 'admin']);
+
 
 // Запуск обработки запроса
 $router->dispatch(Request::uri(), Request::method());

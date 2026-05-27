@@ -39,13 +39,21 @@ class Application {
     }
     
     public function getUserApplications($userId, $limit = 10, $offset = 0) {
-        $stmt = $this->db->prepare("SELECT a.*, cat.name as category_name, pri.name as priority_name, pri.color
-                                    FROM application a
-                                    LEFT JOIN categories cat ON a.category_id = cat.category_id
-                                    LEFT JOIN priorities pri ON a.priority_id = pri.priority_id
-                                    WHERE a.user_id = :user_id
-                                    ORDER BY a.created_at DESC
-                                    LIMIT :limit OFFSET :offset");
+        $stmt = $this->db->prepare("
+            SELECT a.*, 
+                cat.name as category_name, 
+                pri.name as priority_name, 
+                pri.color,
+                assigned.surname as assigned_surname,
+                assigned.name as assigned_name
+            FROM application a
+            LEFT JOIN categories cat ON a.category_id = cat.category_id
+            LEFT JOIN priorities pri ON a.priority_id = pri.priority_id
+            LEFT JOIN user assigned ON a.assigned_to = assigned.user_id
+            WHERE a.user_id = :user_id
+            ORDER BY a.created_at DESC
+            LIMIT :limit OFFSET :offset
+        ");
         $stmt->bindParam(':user_id', $userId, \PDO::PARAM_INT);
         $stmt->bindParam(':limit', $limit, \PDO::PARAM_INT);
         $stmt->bindParam(':offset', $offset, \PDO::PARAM_INT);
@@ -187,5 +195,17 @@ class Application {
         $stats['last_7_days'] = $stmt->fetchAll();
         
         return $stats;
+    }
+
+    public function getHistory($appId) {
+        $stmt = $this->db->prepare("
+            SELECT h.*, u.surname, u.name 
+            FROM application_history h
+            JOIN user u ON h.user_id = u.user_id
+            WHERE h.application_id = :app_id
+            ORDER BY h.created_at ASC
+        ");
+        $stmt->execute([':app_id' => $appId]);
+        return $stmt->fetchAll();
     }
 }

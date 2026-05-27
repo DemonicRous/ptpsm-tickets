@@ -17,7 +17,12 @@ class User {
     }
     
     public function findById($id) {
-        $stmt = $this->db->prepare("SELECT * FROM user WHERE user_id = :id");
+        $stmt = $this->db->prepare("
+            SELECT u.*, d.name as department_name 
+            FROM user u 
+            LEFT JOIN departments d ON u.department_id = d.department_id 
+            WHERE u.user_id = :id
+        ");
         $stmt->execute([':id' => $id]);
         return $stmt->fetch();
     }
