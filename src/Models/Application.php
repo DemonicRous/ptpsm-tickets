@@ -17,7 +17,7 @@ class Application {
         $stmt->execute($data);
         $appId = $this->db->lastInsertId();
         // Добавить историю: создана
-        $this->addHistory($appId, $data['user_id'], 'status', null, 'Новый');
+        $this->addHistory($appId, $data[':user_id'], 'status', null, 'Новый');
         return $appId;
     }
     
@@ -183,7 +183,6 @@ class Application {
     }
     
     public function getStatistics() {
-        // Для админ-панели
         $stats = [];
         $stmt = $this->db->query("SELECT status, COUNT(*) as count FROM application GROUP BY status");
         $stats['by_status'] = $stmt->fetchAll();

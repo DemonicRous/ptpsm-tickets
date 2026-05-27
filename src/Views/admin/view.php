@@ -1,98 +1,30 @@
-<?php
-/** @var array $application */
-/** @var array $comments */
-/** @var array $attachments */
-/** @var array $history */
-/** @var array $users */
-/** @var string $csrf_token */
-?>
-
 <div class="max-w-4xl mx-auto">
-    <?php if (isset($_GET['success'])): ?>
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">Действие выполнено успешно</div>
-    <?php endif; ?>
+    <div class="mb-4"><a href="/admin" class="text-blue-600 hover:underline inline-flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>Назад к списку</a></div>
 
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-        <div class="flex justify-between items-start">
-            <h1 class="text-2xl font-bold">Заявка №<?= htmlspecialchars($application['number']) ?></h1>
-            <span class="px-3 py-1 rounded text-sm font-semibold" style="background-color: <?= htmlspecialchars($application['priority_color'] ?? '#ccc') ?>20; color: <?= htmlspecialchars($application['priority_color'] ?? '#000') ?>">
-                <?= htmlspecialchars($application['priority_name'] ?? 'Средний') ?>
-            </span>
-        </div>
-        
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 text-sm">
-            <div><strong>Статус:</strong> <?= htmlspecialchars($application['status']) ?></div>
-            <div><strong>Дата создания:</strong> <?= date('d.m.Y H:i', strtotime($application['created_at'])) ?></div>
-            <div><strong>Автор:</strong> <?= htmlspecialchars($application['surname'] . ' ' . $application['name'] . ' ' . $application['patronymic']) ?></div>
-            <div><strong>Отдел автора:</strong> <?= htmlspecialchars($application['department_name'] ?? '—') ?></div>
-            <div><strong>Категория:</strong> <?= htmlspecialchars($application['category_name'] ?? '—') ?></div>
-            <div><strong>Ответственный:</strong> <?= htmlspecialchars($application['assigned_surname'] ?? '—') ?> <?= htmlspecialchars($application['assigned_name'] ?? '') ?></div>
-            <div><strong>Кабинет/место:</strong> <?= htmlspecialchars($application['name_org']) ?></div>
-            <?php if ($application['expected_date']): ?>
-                <div><strong>Желаемая дата:</strong> <?= date('d.m.Y', strtotime($application['expected_date'])) ?></div>
-            <?php endif; ?>
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+        <div class="p-5 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-900/30">
+            <div class="flex flex-wrap justify-between items-start gap-3"><div><h1 class="text-2xl font-bold">Заявка №<?= htmlspecialchars($application['number']) ?></h1><p class="text-sm text-gray-500 mt-1">Создана: <?= date('d.m.Y H:i', strtotime($application['created_at'])) ?></p></div><div><span class="badge <?= match($application['priority_name'] ?? 'Средний'){'Низкий'=>'badge-gray','Средний'=>'badge-blue','Высокий'=>'badge-yellow','Критический'=>'badge-red',default=>'badge-gray'} ?>"><?= htmlspecialchars($application['priority_name'] ?? 'Средний') ?></span></div></div>
         </div>
 
-        <div class="mt-4">
-            <strong>Описание проблемы:</strong>
-            <div class="mt-2 p-3 bg-gray-100 dark:bg-gray-700 rounded"><?= nl2br(htmlspecialchars($application['message'])) ?></div>
-        </div>
-
-        <!-- Вложения -->
-        <?php if (!empty($attachments)): ?>
-            <div class="mt-4">
-                <strong>Вложения:</strong>
-                <ul class="list-disc pl-5 mt-2">
-                    <?php foreach ($attachments as $file): ?>
-                        <li>
-                            <a href="/storage/uploads/<?= htmlspecialchars($file['filename']) ?>" target="_blank" class="text-blue-600 hover:underline">
-                                <?= htmlspecialchars($file['original_name']) ?> (<?= round($file['size'] / 1024) ?> КБ)
-                            </a>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
+        <div class="p-5 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div><strong>Статус:</strong> <span class="badge <?= match($application['status']){'Новый'=>'badge-blue','В работе'=>'badge-yellow','Подтвержден'=>'badge-green','Отменен'=>'badge-red',default=>'badge-gray'} ?> ml-2"><?= htmlspecialchars($application['status']) ?></span></div>
+                <div><strong>Автор:</strong> <?= htmlspecialchars($application['surname'] . ' ' . $application['name'] . ' ' . $application['patronymic']) ?></div>
+                <div><strong>Отдел автора:</strong> <?= htmlspecialchars($application['department_name'] ?? '—') ?></div>
+                <div><strong>Категория:</strong> <?= htmlspecialchars($application['category_name'] ?? '—') ?></div>
+                <div><strong>Кабинет/место:</strong> <?= htmlspecialchars($application['name_org']) ?></div>
+                <div><strong>Ответственный:</strong> <form method="POST" action="/admin/assign" class="inline-flex items-center gap-2"><?= \Core\CSRF::input() ?><input type="hidden" name="application_id" value="<?= $application['application_id'] ?>"><select name="assigned_to" class="text-sm border rounded px-2 py-1 dark:bg-gray-700"><option value="">Не назначен</option><?php foreach ($users as $u): ?><option value="<?= $u['user_id'] ?>" <?= ($application['assigned_to'] == $u['user_id']) ? 'selected' : '' ?>><?= htmlspecialchars($u['surname'] . ' ' . $u['name']) ?></option><?php endforeach; ?></select><button type="submit" class="text-blue-600 text-sm hover:underline">Назначить</button></form></div>
+                <?php if ($application['expected_date']): ?><div><strong>Желаемая дата:</strong> <?= date('d.m.Y', strtotime($application['expected_date'])) ?></div><?php endif; ?>
             </div>
-        <?php endif; ?>
-    </div>
+            <div><strong>Описание проблемы:</strong><div class="mt-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"><?= nl2br(htmlspecialchars($application['message'])) ?></div></div>
 
-    <!-- Комментарии -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-        <h2 class="text-xl font-semibold mb-4">Комментарии</h2>
-        <div class="space-y-3 mb-4">
-            <?php foreach ($comments as $comment): ?>
-                <div class="border-l-4 border-blue-500 pl-3 py-1">
-                    <div class="text-sm text-gray-500"><?= htmlspecialchars($comment['surname'] . ' ' . $comment['name']) ?> — <?= date('d.m.Y H:i', strtotime($comment['created_at'])) ?></div>
-                    <div class="mt-1"><?= nl2br(htmlspecialchars($comment['comment'])) ?></div>
-                </div>
-            <?php endforeach; ?>
-            <?php if (empty($comments)): ?>
-                <p class="text-gray-500">Нет комментариев.</p>
-            <?php endif; ?>
+            <div class="pt-4 border-t dark:border-gray-700"><form method="POST" action="/admin/update-status" class="flex flex-wrap items-center gap-3"><?= \Core\CSRF::input() ?><input type="hidden" name="application_id" value="<?= $application['application_id'] ?>"><label class="text-sm font-medium">Изменить статус:</label><select name="status" class="border rounded-lg px-3 py-1 dark:bg-gray-700"><option value="Новый" <?= $application['status'] === 'Новый' ? 'selected' : '' ?>>Новый</option><option value="В работе" <?= $application['status'] === 'В работе' ? 'selected' : '' ?>>В работе</option><option value="Подтвержден" <?= $application['status'] === 'Подтвержден' ? 'selected' : '' ?>>Подтвержден</option><option value="Отменен" <?= $application['status'] === 'Отменен' ? 'selected' : '' ?>>Отменен</option><option value="Закрыт" <?= $application['status'] === 'Закрыт' ? 'selected' : '' ?>>Закрыт</option></select><button type="submit" class="bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm hover:bg-blue-700">Обновить</button></form></div>
+
+            <?php if (!empty($attachments)): ?><div class="pt-4 border-t dark:border-gray-700"><h3 class="font-semibold mb-2">Вложения</h3><ul class="space-y-1"><?php foreach ($attachments as $file): ?><li class="flex items-center gap-2"><svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg><a href="/storage/uploads/<?= htmlspecialchars($file['filename']) ?>" target="_blank" class="text-blue-600 hover:underline"><?= htmlspecialchars($file['original_name']) ?></a><span class="text-xs text-gray-500">(<?= round($file['size'] / 1024) ?> КБ)</span></li><?php endforeach; ?></ul></div><?php endif; ?>
+
+            <div class="pt-4 border-t dark:border-gray-700"><h3 class="font-semibold mb-3">Комментарии</h3><div class="space-y-3 mb-4 max-h-80 overflow-y-auto"><?php foreach ($comments as $comment): ?><div class="border-l-4 border-blue-400 pl-3"><div class="text-sm text-gray-500"><?= htmlspecialchars($comment['surname'] . ' ' . $comment['name']) ?> — <?= date('d.m.Y H:i', strtotime($comment['created_at'])) ?></div><div class="mt-1"><?= nl2br(htmlspecialchars($comment['comment'])) ?></div></div><?php endforeach; ?><?php if (empty($comments)): ?><p class="text-gray-500 text-sm">Нет комментариев.</p><?php endif; ?></div><form method="POST" action="/application/comment"><?= \Core\CSRF::input() ?><input type="hidden" name="application_id" value="<?= $application['application_id'] ?>"><textarea name="comment" rows="3" class="w-full border rounded-lg px-3 py-2 dark:bg-gray-700" placeholder="Напишите комментарий..."></textarea><button type="submit" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">Добавить комментарий</button></form></div>
+
+            <?php if (!empty($history)): ?><div class="pt-4 border-t dark:border-gray-700"><h3 class="font-semibold mb-2">История изменений</h3><ul class="space-y-1 text-sm"><?php foreach ($history as $h): ?><li><?= date('d.m.Y H:i', strtotime($h['created_at'])) ?> — <strong><?= htmlspecialchars($h['surname'] . ' ' . $h['name']) ?></strong>: изменил(а) <em><?= htmlspecialchars($h['field_name']) ?></em> с «<?= htmlspecialchars($h['old_value'] ?? '—') ?>» на «<?= htmlspecialchars($h['new_value'] ?? '—') ?>»</li><?php endforeach; ?></ul></div><?php endif; ?>
         </div>
-
-        <form method="POST" action="/application/comment">
-            <?= \Core\CSRF::input() ?>
-            <input type="hidden" name="application_id" value="<?= $application['application_id'] ?>">
-            <textarea name="comment" rows="3" class="w-full border rounded px-3 py-2 dark:bg-gray-700" placeholder="Напишите комментарий..."></textarea>
-            <button type="submit" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Добавить комментарий</button>
-        </form>
     </div>
-
-    <!-- История изменений (опционально) -->
-    <?php if (!empty($history)): ?>
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mt-6">
-        <h2 class="text-xl font-semibold mb-4">История изменений</h2>
-        <ul class="space-y-2 text-sm">
-            <?php foreach ($history as $h): ?>
-                <li><?= date('d.m.Y H:i', strtotime($h['created_at'])) ?> — 
-                    <?= htmlspecialchars($h['surname'] . ' ' . $h['name']) ?>: 
-                    <?= htmlspecialchars($h['field_name']) ?> 
-                    (<?= htmlspecialchars($h['old_value'] ?? '—') ?> → <?= htmlspecialchars($h['new_value'] ?? '—') ?>)
-                </li>
-            <?php endforeach; ?>
-        </ul>
-    </div>
-<?php endif; ?>
-
 </div>

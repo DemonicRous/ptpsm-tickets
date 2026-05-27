@@ -1,21 +1,15 @@
-<div class="max-w-2xl mx-auto mt-6">
+<div class="max-w-2xl mx-auto">
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8">
-        <div class="text-center mb-6">
-            <div class="mx-auto w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-            </div>
-            <h2 class="text-2xl font-bold mt-4">Регистрация</h2>
+        <div class="flex items-center gap-3 mb-6">
+            <svg class="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+            <h1 class="text-2xl font-bold">Добавление пользователя</h1>
         </div>
 
         <?php if (!empty($errors)): ?>
-            <div class="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
-                <?php foreach ($errors as $error): ?>
-                    <p><?= htmlspecialchars($error) ?></p>
-                <?php endforeach; ?>
-            </div>
+            <div class="mb-4 p-3 bg-red-100 text-red-700 rounded-lg"><?php foreach ($errors as $error) echo "<p>".htmlspecialchars($error)."</p>"; ?></div>
         <?php endif; ?>
 
-        <form method="POST">
+        <form method="POST" action="/admin/users/store">
             <?= \Core\CSRF::input() ?>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div><label class="block text-sm font-medium mb-1">Фамилия *</label><input type="text" name="surname" value="<?= htmlspecialchars($old['surname'] ?? '') ?>" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700"></div>
@@ -24,16 +18,13 @@
                 <div><label class="block text-sm font-medium mb-1">Логин *</label><input type="text" name="login" value="<?= htmlspecialchars($old['login'] ?? '') ?>" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700"></div>
                 <div><label class="block text-sm font-medium mb-1">Email *</label><input type="email" name="email" value="<?= htmlspecialchars($old['email'] ?? '') ?>" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700"></div>
                 <div><label class="block text-sm font-medium mb-1">Телефон *</label><input type="tel" name="phone" value="<?= htmlspecialchars($old['phone'] ?? '') ?>" placeholder="+7(123)-456-78-90" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700"></div>
+                <div><label class="block text-sm font-medium mb-1">Роль</label><select name="role" class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700"><option value="Пользователь" <?= (($old['role'] ?? '') == 'Пользователь') ? 'selected' : '' ?>>Пользователь</option><option value="Администратор" <?= (($old['role'] ?? '') == 'Администратор') ? 'selected' : '' ?>>Администратор</option></select></div>
                 <div><label class="block text-sm font-medium mb-1">Отдел</label><select name="department_id" class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700"><option value="">-- Не выбран --</option><?php foreach ($departments as $dept): ?><option value="<?= $dept['department_id'] ?>" <?= (($old['department_id'] ?? '') == $dept['department_id']) ? 'selected' : '' ?>><?= htmlspecialchars($dept['name']) ?></option><?php endforeach; ?></select></div>
                 <div><label class="block text-sm font-medium mb-1">Должность</label><input type="text" name="position" value="<?= htmlspecialchars($old['position'] ?? '') ?>" class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700"></div>
                 <div><label class="block text-sm font-medium mb-1">Пароль * (мин. 6)</label><input type="password" name="password" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700"></div>
                 <div><label class="block text-sm font-medium mb-1">Повторите пароль *</label><input type="password" name="password_repeat" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700"></div>
             </div>
-            <button type="submit" class="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition flex items-center justify-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                Зарегистрироваться
-            </button>
+            <button type="submit" class="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition">Создать пользователя</button>
         </form>
-        <p class="text-center text-sm mt-5">Уже есть аккаунт? <a href="/auth" class="text-blue-600 hover:underline">Войти</a></p>
     </div>
 </div>

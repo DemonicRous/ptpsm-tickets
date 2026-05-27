@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS `departments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
--- 2. Пользователи (расширенные)
+-- 2. Пользователи (с аватаром)
 -- =====================================================
 CREATE TABLE IF NOT EXISTS `user` (
     `user_id` INT NOT NULL AUTO_INCREMENT,

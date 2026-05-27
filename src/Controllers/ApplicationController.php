@@ -16,8 +16,7 @@ class ApplicationController {
         $this->appModel = new Application();
     }
     
-   public function create(Request $request) {
-        // Используем метод, возвращающий категории с уровнем вложенности
+    public function create(Request $request) {
         $categories = (new Category())->getAllWithLevel();
         $priorities = (new Priority())->getAll();
         View::render('application/create', [
@@ -37,7 +36,6 @@ class ApplicationController {
         if ($comment) {
             $this->appModel->addComment($appId, $_SESSION['user_id'], $comment);
         }
-        // Редирект в зависимости от роли
         if ($_SESSION['role'] === 'Администратор') {
             header("Location: /admin/view?id=$appId");
         } else {
@@ -56,8 +54,35 @@ class ApplicationController {
         if (!Validation::required($post['name_org'] ?? '')) $errors['name_org'] = 'Укажите кабинет/место';
         if (!Validation::required($post['message'] ?? '')) $errors['message'] = 'Опишите проблему';
         
+        // Валидация даты
+        $expected_date = null;
+        if (!empty($post['expected_date'])) {
+            $dateStr = trim($post['expected_date']);
+            $date = null;
+            
+            // Формат YYYY-MM-DD (HTML5 date input)
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateStr)) {
+                $date = \DateTime::createFromFormat('Y-m-d', $dateStr);
+            }
+            // Формат DD.MM.YYYY (ручной ввод)
+            elseif (preg_match('/^\d{2}\.\d{2}\.\d{4}$/', $dateStr)) {
+                $date = \DateTime::createFromFormat('d.m.Y', $dateStr);
+            }
+            
+            if ($date && ($date->format('Y-m-d') === $dateStr || $date->format('d.m.Y') === $dateStr)) {
+                $year = (int)$date->format('Y');
+                if ($year < 2000 || $year > 2100) {
+                    $errors['expected_date'] = 'Год должен быть между 2000 и 2100';
+                } else {
+                    $expected_date = $date->format('Y-m-d');
+                }
+            } else {
+                $errors['expected_date'] = 'Неверный формат даты. Используйте ГГГГ-ММ-ДД или ДД.ММ.ГГГГ (например, 2025-12-31 или 31.12.2025)';
+            }
+        }
+        
         if (!empty($errors)) {
-            $categories = (new Category())->getAll();
+            $categories = (new Category())->getAllWithLevel();
             $priorities = (new Priority())->getAll();
             View::render('application/create', [
                 'csrf_token' => CSRF::generateToken(),
@@ -79,12 +104,11 @@ class ApplicationController {
             ':assigned_to' => null,
             ':name_org' => $post['name_org'],
             ':message' => $post['message'],
-            ':expected_date' => !empty($post['expected_date']) ? $post['expected_date'] : null
+            ':expected_date' => $expected_date
         ];
         
         $appId = $this->appModel->create($data);
         
-        // Обработка вложений (если есть)
         if (isset($_FILES['attachments']) && !empty($_FILES['attachments']['name'][0])) {
             $this->handleAttachments($appId, $_FILES['attachments']);
         }
@@ -114,5 +138,32 @@ class ApplicationController {
                 }
             }
         }
+    }
+
+    public function view(Request $request) {
+        $id = $request->get('id');
+        $app = $this->appModel->findById($id);
+        if (!$app) {
+            http_response_code(404);
+            echo "Заявка не найдена";
+            exit;
+        }
+        // Проверка прав: только автор или админ
+        if ($_SESSION['role'] !== 'Администратор' && $app['user_id'] != $_SESSION['user_id']) {
+            http_response_code(403);
+            echo "Доступ запрещён";
+            exit;
+        }
+        $comments = $this->appModel->getComments($id);
+        $attachments = $this->appModel->getAttachments($id);
+        $history = $this->appModel->getHistory($id);
+        
+        View::render('application/view', [
+            'application' => $app,
+            'comments' => $comments,
+            'attachments' => $attachments,
+            'history' => $history,
+            'csrf_token' => CSRF::generateToken()
+        ]);
     }
 }

@@ -1,0 +1,50 @@
+# Общие
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+*.cache
+*.tmp
+
+# IDE и редакторы
+.vscode/
+.idea/
+*.sublime-*
+.project
+.classpath
+
+# Composer
+vendor/
+composer.lock
+composer.phar
+
+# Node.js
+node_modules/
+package-lock.json
+yarn.lock
+
+# Сгенерированные CSS (пересобирается через npm run build:css)
+public/assets/css/output.css
+
+# Переменные окружения
+.env
+
+# Папки с загруженными файлами (вложения, аватары)
+storage/uploads/
+storage/avatars/
+
+# Символическая ссылка (создаётся локально)
+public/storage
+
+# Логи фреймворка / приложения
+logs/
+*.log
+
+# Кэш
+.cache/
+cache/
+tmp/
+
+# Файлы отчётов
+*.swo
+*.swp

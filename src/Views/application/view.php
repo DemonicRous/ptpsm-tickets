@@ -1,0 +1,80 @@
+<div class="max-w-4xl mx-auto">
+    <div class="mb-4">
+        <a href="/profile" class="text-blue-600 hover:underline inline-flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            Назад к моим заявкам
+        </a>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+        <div class="p-5 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-900/30">
+            <div class="flex flex-wrap justify-between items-start gap-3">
+                <div>
+                    <h1 class="text-2xl font-bold">Заявка №<?= htmlspecialchars($application['number']) ?></h1>
+                    <p class="text-sm text-gray-500 mt-1">Создана: <?= date('d.m.Y H:i', strtotime($application['created_at'])) ?></p>
+                </div>
+                <div>
+                    <span class="badge <?= match($application['priority_name'] ?? 'Средний'){'Низкий'=>'badge-gray','Средний'=>'badge-blue','Высокий'=>'badge-yellow','Критический'=>'badge-red',default=>'badge-gray'} ?>">
+                        <?= htmlspecialchars($application['priority_name'] ?? 'Средний') ?>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-5 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div><strong>Статус:</strong> <span class="badge <?= match($application['status']){'Новый'=>'badge-blue','В работе'=>'badge-yellow','Подтвержден'=>'badge-green','Отменен'=>'badge-red',default=>'badge-gray'} ?> ml-2"><?= htmlspecialchars($application['status']) ?></span></div>
+                <div><strong>Категория:</strong> <?= htmlspecialchars($application['category_name'] ?? '—') ?></div>
+                <div><strong>Кабинет/место:</strong> <?= htmlspecialchars($application['name_org']) ?></div>
+                <div><strong>Ответственный:</strong> <?= htmlspecialchars($application['assigned_surname'] ?? 'Не назначен') ?></div>
+                <?php if ($application['expected_date']): ?><div><strong>Желаемая дата:</strong> <?= date('d.m.Y', strtotime($application['expected_date'])) ?></div><?php endif; ?>
+            </div>
+            <div><strong>Описание проблемы:</strong><div class="mt-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"><?= nl2br(htmlspecialchars($application['message'])) ?></div></div>
+
+            <?php if (!empty($attachments)): ?>
+            <div class="pt-4 border-t dark:border-gray-700">
+                <h3 class="font-semibold mb-2">Вложения</h3>
+                <ul class="space-y-1">
+                    <?php foreach ($attachments as $file): ?>
+                    <li class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                        <a href="/storage/<?= htmlspecialchars($file['filename']) ?>" target="_blank" class="text-blue-600 hover:underline"><?= htmlspecialchars($file['original_name']) ?></a>
+                        <span class="text-xs text-gray-500">(<?= round($file['size'] / 1024) ?> КБ)</span>
+                    </li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+            <?php endif; ?>
+
+            <div class="pt-4 border-t dark:border-gray-700">
+                <h3 class="font-semibold mb-3">Комментарии</h3>
+                <div class="space-y-3 mb-4 max-h-80 overflow-y-auto">
+                    <?php foreach ($comments as $comment): ?>
+                    <div class="border-l-4 border-blue-400 pl-3">
+                        <div class="text-sm text-gray-500"><?= htmlspecialchars($comment['surname'] . ' ' . $comment['name']) ?> — <?= date('d.m.Y H:i', strtotime($comment['created_at'])) ?></div>
+                        <div class="mt-1"><?= nl2br(htmlspecialchars($comment['comment'])) ?></div>
+                    </div>
+                    <?php endforeach; ?>
+                    <?php if (empty($comments)): ?><p class="text-gray-500 text-sm">Нет комментариев.</p><?php endif; ?>
+                </div>
+                <form method="POST" action="/application/comment">
+                    <?= \Core\CSRF::input() ?>
+                    <input type="hidden" name="application_id" value="<?= $application['application_id'] ?>">
+                    <textarea name="comment" rows="3" class="w-full border rounded-lg px-3 py-2 dark:bg-gray-700" placeholder="Напишите комментарий..."></textarea>
+                    <button type="submit" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">Добавить комментарий</button>
+                </form>
+            </div>
+
+            <?php if (!empty($history)): ?>
+            <div class="pt-4 border-t dark:border-gray-700">
+                <h3 class="font-semibold mb-2">История изменений</h3>
+                <ul class="space-y-1 text-sm">
+                    <?php foreach ($history as $h): ?>
+                    <li><?= date('d.m.Y H:i', strtotime($h['created_at'])) ?> — <strong><?= htmlspecialchars($h['surname'] . ' ' . $h['name']) ?></strong>: изменил(а) <em><?= htmlspecialchars($h['field_name']) ?></em> с «<?= htmlspecialchars($h['old_value'] ?? '—') ?>» на «<?= htmlspecialchars($h['new_value'] ?? '—') ?>»</li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
