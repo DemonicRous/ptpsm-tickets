@@ -67,7 +67,7 @@ foreach ($prioritiesData as $pri) {
 echo "✅ Приоритеты добавлены\n";
 
 // =====================================================
-// 3. Категории (иерархия)
+// 3. Категории
 // =====================================================
 $categoriesData = [
     ['Оборудование', null],
@@ -87,40 +87,37 @@ echo "✅ Категории добавлены\n";
 // =====================================================
 // 4. Пользователи
 // =====================================================
-$usersData = [
-    // Администратор
-    ['surname' => 'Административный', 'name' => 'Админ', 'patronymic' => 'Админович', 'login' => 'copp', 'email' => 'admin@ptpsm.ru', 'phone' => '+7(999)-999-99-99', 'role' => 'Администратор', 'department' => 'Администрация', 'position' => 'Системный администратор'],
-    // Руководители
-    ['surname' => 'Петров', 'name' => 'Иван', 'patronymic' => 'Сергеевич', 'login' => 'petrov', 'email' => 'petrov@ptpsm.ru', 'phone' => '+7(912)-345-67-89', 'role' => 'Пользователь', 'department' => 'Администрация', 'position' => 'Директор'],
-    ['surname' => 'Сидорова', 'name' => 'Ольга', 'patronymic' => 'Николаевна', 'login' => 'sidorova', 'email' => 'sidorova@ptpsm.ru', 'phone' => '+7(922)-111-22-33', 'role' => 'Пользователь', 'department' => 'Учебная часть', 'position' => 'Завуч'],
-    // IT-отдел
-    ['surname' => 'Иванов', 'name' => 'Петр', 'patronymic' => 'Алексеевич', 'login' => 'ivanov_p', 'email' => 'p.ivanov@ptpsm.ru', 'phone' => '+7(902)-123-45-67', 'role' => 'Пользователь', 'department' => 'IT-отдел', 'position' => 'Инженер'],
-    ['surname' => 'Кузнецов', 'name' => 'Андрей', 'patronymic' => 'Викторович', 'login' => 'kuznetsov', 'email' => 'kuznetsov@ptpsm.ru', 'phone' => '+7(903)-987-65-43', 'role' => 'Пользователь', 'department' => 'IT-отдел', 'position' => 'Программист'],
-    ['surname' => 'Смирнов', 'name' => 'Дмитрий', 'patronymic' => 'Андреевич', 'login' => 'smirnov', 'email' => 'smirnov@ptpsm.ru', 'phone' => '+7(904)-555-66-77', 'role' => 'Пользователь', 'department' => 'IT-отдел', 'position' => 'Сисадмин'],
-    // Бухгалтерия
-    ['surname' => 'Зайцева', 'name' => 'Елена', 'patronymic' => 'Александровна', 'login' => 'zayceva', 'email' => 'zayceva@ptpsm.ru', 'phone' => '+7(905)-444-33-22', 'role' => 'Пользователь', 'department' => 'Бухгалтерия', 'position' => 'Главный бухгалтер'],
-    ['surname' => 'Морозова', 'name' => 'Татьяна', 'patronymic' => 'Ивановна', 'login' => 'morozova', 'email' => 'morozova@ptpsm.ru', 'phone' => '+7(906)-777-88-99', 'role' => 'Пользователь', 'department' => 'Бухгалтерия', 'position' => 'Экономист'],
-    // Кадры
-    ['surname' => 'Волкова', 'name' => 'Наталья', 'patronymic' => 'Сергеевна', 'login' => 'volkova', 'email' => 'volkova@ptpsm.ru', 'phone' => '+7(907)-123-45-67', 'role' => 'Пользователь', 'department' => 'Отдел кадров', 'position' => 'Специалист по кадрам'],
-    // Учебная часть
-    ['surname' => 'Соколова', 'name' => 'Анна', 'patronymic' => 'Петровна', 'login' => 'sokolova', 'email' => 'sokolova@ptpsm.ru', 'phone' => '+7(908)-321-54-76', 'role' => 'Пользователь', 'department' => 'Учебная часть', 'position' => 'Методист'],
-    ['surname' => 'Михайлов', 'name' => 'Сергей', 'patronymic' => 'Васильевич', 'login' => 'mikhailov', 'email' => 'mikhailov@ptpsm.ru', 'phone' => '+7(909)-876-54-32', 'role' => 'Пользователь', 'department' => 'Учебная часть', 'position' => 'Преподаватель'],
-    // Хозотдел
-    ['surname' => 'Новиков', 'name' => 'Алексей', 'patronymic' => 'Дмитриевич', 'login' => 'novikov', 'email' => 'novikov@ptpsm.ru', 'phone' => '+7(910)-111-22-33', 'role' => 'Пользователь', 'department' => 'Хозяйственный отдел', 'position' => 'Завхоз'],
-    // Продажи
-    ['surname' => 'Козлова', 'name' => 'Мария', 'patronymic' => 'Игоревна', 'login' => 'kozlova', 'email' => 'kozlova@ptpsm.ru', 'phone' => '+7(911)-444-55-66', 'role' => 'Пользователь', 'department' => 'Отдел продаж', 'position' => 'Менеджер'],
-];
-
 $depMap = [];
-$depts = $db->query("SELECT department_id, name FROM departments")->fetchAll();
+$depts = $db->query("SELECT department_id, name FROM departments")->fetchAll(PDO::FETCH_ASSOC);
 foreach ($depts as $d) {
     $depMap[$d['name']] = $d['department_id'];
 }
 
-$userIds = [];
-$defaultPass = password_hash('password123', PASSWORD_BCRYPT);
-$stmtInsert = $db->prepare("INSERT IGNORE INTO user (surname, name, patronymic, login, email, phone, password, role, department_id, position) 
+// Удалим старого пользователя copp, если он существует с неправильным паролем
+$db->exec("DELETE FROM user WHERE login = 'copp'");
+
+$usersData = [
+    // Администратор (пароль admin123)
+    ['surname' => 'Административный', 'name' => 'Админ', 'patronymic' => 'Админович', 'login' => 'copp', 'email' => 'admin@ptpsm.ru', 'phone' => '+7(999)-999-99-99', 'role' => 'Администратор', 'department' => 'Администрация', 'position' => 'Системный администратор', 'password' => password_hash('admin123', PASSWORD_BCRYPT)],
+    // Обычные пользователи (пароль password123)
+    ['surname' => 'Петров', 'name' => 'Иван', 'patronymic' => 'Сергеевич', 'login' => 'petrov', 'email' => 'petrov@ptpsm.ru', 'phone' => '+7(912)-345-67-89', 'role' => 'Пользователь', 'department' => 'Администрация', 'position' => 'Директор', 'password' => password_hash('password123', PASSWORD_BCRYPT)],
+    ['surname' => 'Сидорова', 'name' => 'Ольга', 'patronymic' => 'Николаевна', 'login' => 'sidorova', 'email' => 'sidorova@ptpsm.ru', 'phone' => '+7(922)-111-22-33', 'role' => 'Пользователь', 'department' => 'Учебная часть', 'position' => 'Завуч', 'password' => password_hash('password123', PASSWORD_BCRYPT)],
+    ['surname' => 'Иванов', 'name' => 'Петр', 'patronymic' => 'Алексеевич', 'login' => 'ivanov_p', 'email' => 'p.ivanov@ptpsm.ru', 'phone' => '+7(902)-123-45-67', 'role' => 'Пользователь', 'department' => 'IT-отдел', 'position' => 'Инженер', 'password' => password_hash('password123', PASSWORD_BCRYPT)],
+    ['surname' => 'Кузнецов', 'name' => 'Андрей', 'patronymic' => 'Викторович', 'login' => 'kuznetsov', 'email' => 'kuznetsov@ptpsm.ru', 'phone' => '+7(903)-987-65-43', 'role' => 'Пользователь', 'department' => 'IT-отдел', 'position' => 'Программист', 'password' => password_hash('password123', PASSWORD_BCRYPT)],
+    ['surname' => 'Смирнов', 'name' => 'Дмитрий', 'patronymic' => 'Андреевич', 'login' => 'smirnov', 'email' => 'smirnov@ptpsm.ru', 'phone' => '+7(904)-555-66-77', 'role' => 'Пользователь', 'department' => 'IT-отдел', 'position' => 'Сисадмин', 'password' => password_hash('password123', PASSWORD_BCRYPT)],
+    ['surname' => 'Зайцева', 'name' => 'Елена', 'patronymic' => 'Александровна', 'login' => 'zayceva', 'email' => 'zayceva@ptpsm.ru', 'phone' => '+7(905)-444-33-22', 'role' => 'Пользователь', 'department' => 'Бухгалтерия', 'position' => 'Главный бухгалтер', 'password' => password_hash('password123', PASSWORD_BCRYPT)],
+    ['surname' => 'Морозова', 'name' => 'Татьяна', 'patronymic' => 'Ивановна', 'login' => 'morozova', 'email' => 'morozova@ptpsm.ru', 'phone' => '+7(906)-777-88-99', 'role' => 'Пользователь', 'department' => 'Бухгалтерия', 'position' => 'Экономист', 'password' => password_hash('password123', PASSWORD_BCRYPT)],
+    ['surname' => 'Волкова', 'name' => 'Наталья', 'patronymic' => 'Сергеевна', 'login' => 'volkova', 'email' => 'volkova@ptpsm.ru', 'phone' => '+7(907)-123-45-67', 'role' => 'Пользователь', 'department' => 'Отдел кадров', 'position' => 'Специалист по кадрам', 'password' => password_hash('password123', PASSWORD_BCRYPT)],
+    ['surname' => 'Соколова', 'name' => 'Анна', 'patronymic' => 'Петровна', 'login' => 'sokolova', 'email' => 'sokolova@ptpsm.ru', 'phone' => '+7(908)-321-54-76', 'role' => 'Пользователь', 'department' => 'Учебная часть', 'position' => 'Методист', 'password' => password_hash('password123', PASSWORD_BCRYPT)],
+    ['surname' => 'Михайлов', 'name' => 'Сергей', 'patronymic' => 'Васильевич', 'login' => 'mikhailov', 'email' => 'mikhailov@ptpsm.ru', 'phone' => '+7(909)-876-54-32', 'role' => 'Пользователь', 'department' => 'Учебная часть', 'position' => 'Преподаватель', 'password' => password_hash('password123', PASSWORD_BCRYPT)],
+    ['surname' => 'Новиков', 'name' => 'Алексей', 'patronymic' => 'Дмитриевич', 'login' => 'novikov', 'email' => 'novikov@ptpsm.ru', 'phone' => '+7(910)-111-22-33', 'role' => 'Пользователь', 'department' => 'Хозяйственный отдел', 'position' => 'Завхоз', 'password' => password_hash('password123', PASSWORD_BCRYPT)],
+    ['surname' => 'Козлова', 'name' => 'Мария', 'patronymic' => 'Игоревна', 'login' => 'kozlova', 'email' => 'kozlova@ptpsm.ru', 'phone' => '+7(911)-444-55-66', 'role' => 'Пользователь', 'department' => 'Отдел продаж', 'position' => 'Менеджер', 'password' => password_hash('password123', PASSWORD_BCRYPT)],
+];
+
+$stmtInsert = $db->prepare("INSERT INTO user (surname, name, patronymic, login, email, phone, password, role, department_id, position) 
                             VALUES (:surname, :name, :patronymic, :login, :email, :phone, :password, :role, :dept, :position)");
+
+$userIds = [];
 foreach ($usersData as $u) {
     $deptId = $depMap[$u['department']] ?? null;
     $stmtInsert->execute([
@@ -130,12 +127,12 @@ foreach ($usersData as $u) {
         ':login' => $u['login'],
         ':email' => $u['email'],
         ':phone' => $u['phone'],
-        ':password' => $defaultPass,
+        ':password' => $u['password'],
         ':role' => $u['role'],
         ':dept' => $deptId,
         ':position' => $u['position']
     ]);
-    $userId = $db->lastInsertId() ?: $db->query("SELECT user_id FROM user WHERE login = '{$u['login']}'")->fetchColumn();
+    $userId = $db->lastInsertId();
     $userIds[$u['login']] = $userId;
 }
 echo "✅ Пользователи добавлены (" . count($usersData) . " записей)\n";
