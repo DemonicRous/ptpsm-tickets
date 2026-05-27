@@ -1,3 +1,12 @@
+<?php
+/** @var array $applications */
+/** @var array $users */
+/** @var array $categories */
+/** @var array $priorities */
+/** @var array $filters */
+/** @var array $stats */
+?>
+
 <div class="max-w-7xl mx-auto">
     <h1 class="text-3xl font-bold mb-6">Панель администратора</h1>
 

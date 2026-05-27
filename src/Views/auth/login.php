@@ -1,3 +1,7 @@
+<?php
+/** @var string $csrf_token */
+?>
+
 <div class="max-w-md mx-auto bg-white dark:bg-gray-800 p-8 rounded-lg shadow">
     <h2 class="text-2xl font-bold mb-6">Вход</h2>
     <?php if (isset($_GET['error'])): ?>

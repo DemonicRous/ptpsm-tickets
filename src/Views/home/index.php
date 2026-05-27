@@ -1,3 +1,7 @@
+<?php
+
+?>
+
 <div class="text-center">
     <h1 class="text-4xl font-bold mb-4">Добро пожаловать в ПТПСМ: Заявки</h1>
     <p class="text-lg mb-8">Внутренняя система учёта заявок на техническую поддержку</p>

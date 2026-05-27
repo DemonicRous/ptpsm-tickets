@@ -1,3 +1,12 @@
+<?php
+/** @var array $application */
+/** @var array $comments */
+/** @var array $attachments */
+/** @var array $history */
+/** @var array $users */
+/** @var string $csrf_token */
+?>
+
 <div class="max-w-4xl mx-auto">
     <?php if (isset($_GET['success'])): ?>
         <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">Действие выполнено успешно</div>
@@ -10,6 +19,7 @@
                 <?= htmlspecialchars($application['priority_name'] ?? 'Средний') ?>
             </span>
         </div>
+        
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 text-sm">
             <div><strong>Статус:</strong> <?= htmlspecialchars($application['status']) ?></div>

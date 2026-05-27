@@ -16,8 +16,9 @@ class ApplicationController {
         $this->appModel = new Application();
     }
     
-    public function create(Request $request) {
-        $categories = (new Category())->getAll();
+   public function create(Request $request) {
+        // Используем метод, возвращающий категории с уровнем вложенности
+        $categories = (new Category())->getAllWithLevel();
         $priorities = (new Priority())->getAll();
         View::render('application/create', [
             'csrf_token' => CSRF::generateToken(),
@@ -26,6 +27,23 @@ class ApplicationController {
             'old' => [],
             'errors' => []
         ]);
+    }
+
+    public function addComment(Request $request) {
+        $post = $request->post();
+        if (!CSRF::verifyToken($post['csrf_token'] ?? '')) die('CSRF');
+        $appId = $post['application_id'];
+        $comment = trim($post['comment']);
+        if ($comment) {
+            $this->appModel->addComment($appId, $_SESSION['user_id'], $comment);
+        }
+        // Редирект в зависимости от роли
+        if ($_SESSION['role'] === 'Администратор') {
+            header("Location: /admin/view?id=$appId");
+        } else {
+            header("Location: /profile");
+        }
+        exit;
     }
     
     public function store(Request $request) {
@@ -96,18 +114,5 @@ class ApplicationController {
                 }
             }
         }
-    }
-    
-    public function addComment(Request $request) {
-        // отдельный метод для AJAX или обычный POST
-        $post = $request->post();
-        if (!CSRF::verifyToken($post['csrf_token'] ?? '')) die('CSRF');
-        $appId = $post['application_id'];
-        $comment = trim($post['comment']);
-        if ($comment) {
-            $this->appModel->addComment($appId, $_SESSION['user_id'], $comment);
-        }
-        header("Location: /admin?view=application&id=$appId");
-        exit;
     }
 }

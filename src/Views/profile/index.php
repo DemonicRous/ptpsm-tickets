@@ -1,3 +1,8 @@
+<?php
+/** @var array $user */
+/** @var array $applications */
+?>
+
 <div class="max-w-4xl mx-auto">
     <h1 class="text-3xl font-bold mb-6">Личный кабинет</h1>
 

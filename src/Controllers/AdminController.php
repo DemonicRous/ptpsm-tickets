@@ -82,18 +82,4 @@ class AdminController {
             'csrf_token' => \Core\CSRF::generateToken()
         ]);
     }
-
-    public function addComment(Request $request) {
-        $post = $request->post();
-        if (!CSRF::verifyToken($post['csrf_token'] ?? '')) die('CSRF');
-        $appId = $post['application_id'];
-        $comment = trim($post['comment']);
-        if ($comment) {
-            $this->appModel->addComment($appId, $_SESSION['user_id'], $comment);
-        }
-        // Определяем, откуда пришли (админ или обычный пользователь)
-        $referer = $_SERVER['HTTP_REFERER'] ?? '/';
-        header("Location: $referer");
-        exit;
-    }
 }

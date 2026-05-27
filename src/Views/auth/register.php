@@ -1,3 +1,10 @@
+<?php
+/** @var string $csrf_token */
+/** @var array $departments */
+/** @var array $old */
+/** @var array $errors */
+?>
+
 <div class="max-w-2xl mx-auto bg-white dark:bg-gray-800 p-8 rounded-lg shadow">
     <h2 class="text-2xl font-bold mb-6">Регистрация</h2>
 
